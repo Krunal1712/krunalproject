@@ -12,6 +12,7 @@ import ProviderDashboard from './pages/ProviderDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import AppointmentBooking from './pages/AppointmentBooking';
 
+
 function App() {
   return (
     <Router>
@@ -36,6 +37,7 @@ function App() {
         <Footer />
       </div>
     </Router>
+    
   );
 }
 
