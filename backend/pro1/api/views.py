@@ -1,9 +1,11 @@
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.contrib.auth.hashers import make_password, check_password
 from rest_framework import status
-from .models import User
-from .serializers import UserSerializer
+from .models import User, Appointment
+from .serializers import UserSerializer, AppointmentSerializer
+from django.contrib.auth import get_user_model
 
 
 # ---------------- REGISTER API ----------------
@@ -60,6 +62,29 @@ def login(request):
             "user_id": user.id,
             "name": user.name,
             "email": user.email,
+            "is_admin": user.is_admin, 
         },
         status=status.HTTP_200_OK
     )
+
+
+User = get_user_model()
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_appointment(request):
+    data = request.data.copy()
+    data['user'] = request.user.id
+    serializer = AppointmentSerializer(data=data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response({"message": "Appointment booked successfully", "appointment": serializer.data})
+    return Response({"error": serializer.errors}, status=400)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def user_appointments(request):
+    appointments = Appointment.objects.filter(user=request.user).order_by('date', 'created_at')
+    serializer = AppointmentSerializer(appointments, many=True)
+    return Response(serializer.data)

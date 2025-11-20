@@ -10,7 +10,7 @@ const AdminDashboard = () => {
     // 2. Define handler functions for clarity
     const handleManageUsers = () => {
         // This function will redirect the user to a new URL
-        navigate('/admin/manage-users'); 
+        navigate('/admin/manage-users');
         console.log("Navigating to Manage Users page...");
     };
 

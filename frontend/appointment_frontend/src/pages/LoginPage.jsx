@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import axios from "axios";
+import { useNavigate } from "react-router-dom";   // ✅ add navigation
 
 const LoginPage = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -10,6 +11,7 @@ const LoginPage = () => {
   const [name, setName] = useState(""); 
   const [password, setPassword] = useState("");
 
+  const navigate = useNavigate();  // ✅ initialize navigation
   const API_URL = "http://127.0.0.1:8000/api/";
 
   const handleSubmit = async (e) => {
@@ -23,8 +25,25 @@ const LoginPage = () => {
           password,
         });
 
+        const data = res.data;
         alert("Login Successful!");
-        console.log(res.data);
+        console.log(data);
+
+        // ✅ Save login data (backend returns flat fields, not data.user)
+localStorage.setItem("token", data.token);
+localStorage.setItem("is_admin", data.is_admin);
+localStorage.setItem("user_id", data.id);
+localStorage.setItem("email", data.email);
+
+// ---------- REDIRECT BASED ON ROLE ----------
+if (data.is_admin) {
+  navigate("/admin/dashboard");  
+} else {
+  navigate("/user/dashboard");
+}
+
+console.log("LOGIN RESPONSE:", data);
+
 
       } else {
         // ---------- REGISTER ----------
@@ -37,6 +56,7 @@ const LoginPage = () => {
         alert("User Registered Successfully!");
         console.log(res.data);
       }
+
     } catch (err) {
       console.error(err);
       alert(err.response?.data?.error || "Something went wrong!");
@@ -66,7 +86,7 @@ const LoginPage = () => {
                 />
               </div>
 
-              {/* NAME (only in Register mode) */}
+              {/* NAME (only for register) */}
               {!isLogin && (
                 <div className="mb-3">
                   <label className="form-label">Full Name</label>
@@ -92,7 +112,6 @@ const LoginPage = () => {
                 />
               </div>
 
-              {/* BUTTON */}
               <button type="submit" className="btn btn-primary w-100">
                 {isLogin ? 'Login' : 'Create Account'}
               </button>
@@ -102,6 +121,7 @@ const LoginPage = () => {
 
             <p className="text-center">
               {isLogin ? "Don't have an account? " : "Already have an account? "}
+
               <span 
                 className="text-primary"
                 style={{cursor: 'pointer'}}

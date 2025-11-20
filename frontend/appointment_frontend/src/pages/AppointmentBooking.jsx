@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from "axios";
+
 
 // Mock data (replace with API later)
 const mockServices = [
@@ -14,6 +16,12 @@ const AppointmentBooking = () => {
   const [selectedService, setSelectedService] = useState(null);
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
+
+  // NEW FIELDS
+  const [patientName, setPatientName] = useState('');
+  const [patientPhone, setPatientPhone] = useState('');
+  
+
   const navigate = useNavigate();
 
   const handleSelectService = (s) => {
@@ -23,18 +31,30 @@ const AppointmentBooking = () => {
   };
 
   const handleBooking = () => {
-    if (!selectedService || !selectedDate || !selectedTime) {
-      alert('Please select service, date and time.');
+    if (
+      !selectedService ||
+      !selectedDate ||
+      !selectedTime ||
+      !patientName.trim() ||
+      !patientPhone.trim()
+    ) {
+      alert('Please fill all fields: patient name, phone, service, date and time.');
       return;
     }
 
-    // Make safe ISO date for storage (YYYY-MM-DD)
-    const dateIso = selectedDate; // input type=date already gives yyyy-mm-dd
-    const dateObj = new Date(dateIso + 'T00:00:00'); // avoid timezone offset issues
-    const dateDisplay = dateObj.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+    // ISO Date
+    const dateIso = selectedDate;
+    const dateObj = new Date(dateIso + 'T00:00:00');
+    const dateDisplay = dateObj.toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
 
     const newAppt = {
       id: `appt_${Date.now()}`,
+      patientName,
+      patientPhone,
       serviceId: selectedService.id,
       serviceName: selectedService.name,
       provider: selectedService.provider,
@@ -50,35 +70,66 @@ const AppointmentBooking = () => {
       localStorage.setItem('appointments', JSON.stringify(stored));
     } catch (err) {
       console.error('localStorage error:', err);
-      alert('Could not save appointment locally.');
+      alert('Could not save appointment.');
       return;
     }
 
-    // optional: clear local selections (not required)
+    // Reset fields
+    setPatientName('');
+    setPatientPhone('');
     setSelectedService(null);
     setSelectedDate('');
     setSelectedTime('');
-
-    // redirect to dashboard where appointment will be visible
-    navigate('/dashboard');
+    navigate('/user/dashboard');
   };
 
   return (
     <div>
       <h2>🗓️ Book a New Appointment</h2>
-      <p className="lead">Choose service → date → time.</p>
+      <p className="lead">Enter patient details → choose service → date → time.</p>
       <hr />
 
+      {/* PATIENT DETAILS */}
+      <div className="card p-3 mb-4">
+        <h5>1. Patient Details</h5>
+
+        <div className="row">
+          <div className="col-md-6 mb-3">
+            <label className="form-label fw-bold">Patient Name</label>
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Enter full name"
+              value={patientName}
+              onChange={(e) => setPatientName(e.target.value)}
+            />
+          </div>
+
+          <div className="col-md-6 mb-3">
+            <label className="form-label fw-bold">Mobile Number</label>
+            <input
+              type="tel"
+              className="form-control"
+              placeholder="Enter mobile number"
+              value={patientPhone}
+              onChange={(e) => setPatientPhone(e.target.value)}
+            />
+          </div>
+        </div>
+      </div>
+
       <div className="row">
+        {/* SERVICES */}
         <div className="col-md-4 mb-4">
           <div className="card p-3">
-            <h5>1. Choose a Service</h5>
+            <h5>2. Choose a Service</h5>
             <div className="list-group">
               {mockServices.map((s) => (
                 <button
                   key={s.id}
                   type="button"
-                  className={`list-group-item list-group-item-action ${selectedService?.id === s.id ? 'active' : ''}`}
+                  className={`list-group-item list-group-item-action 
+                    ${selectedService?.id === s.id ? 'active' : ''}`}
                   onClick={() => handleSelectService(s)}
                 >
                   <div><strong>{s.name}</strong></div>
@@ -89,18 +140,20 @@ const AppointmentBooking = () => {
           </div>
         </div>
 
+        {/* DATE & TIME */}
         <div className="col-md-8">
           <div className="card p-3">
-            <h5>2. Select Date & Time</h5>
+            <h5>3. Select Date & Time</h5>
 
             {!selectedService ? (
-              <div className="alert alert-info">Please select a service first.</div>
+              <div className="alert alert-info">Please select a service.</div>
             ) : (
               <>
                 <div className="mb-3">
                   <label className="form-label fw-bold">Selected Service</label>
                   <div className="mb-2">
-                    <strong>{selectedService.name}</strong> — <span className="text-muted">{selectedService.provider}</span>
+                    <strong>{selectedService.name}</strong> —
+                    <span className="text-muted"> {selectedService.provider}</span>
                   </div>
 
                   <label className="form-label fw-bold">Select Date</label>
@@ -108,7 +161,10 @@ const AppointmentBooking = () => {
                     type="date"
                     className="form-control"
                     value={selectedDate}
-                    onChange={(e) => { setSelectedDate(e.target.value); setSelectedTime(''); }}
+                    onChange={(e) => {
+                      setSelectedDate(e.target.value);
+                      setSelectedTime('');
+                    }}
                     min={new Date().toISOString().slice(0, 10)}
                   />
                 </div>
@@ -121,7 +177,9 @@ const AppointmentBooking = () => {
                         <button
                           key={slot}
                           type="button"
-                          className={`btn ${selectedTime === slot ? 'btn-success' : 'btn-outline-primary'} m-1`}
+                          className={`btn ${
+                            selectedTime === slot ? 'btn-success' : 'btn-outline-primary'
+                          } m-1`}
                           onClick={() => setSelectedTime(slot)}
                         >
                           {slot}
@@ -131,7 +189,9 @@ const AppointmentBooking = () => {
 
                     <div className="mt-3">
                       <strong>Selected:</strong>{' '}
-                      {selectedDate ? new Date(selectedDate + 'T00:00:00').toLocaleDateString() : '—'}{' '}
+                      {selectedDate
+                        ? new Date(selectedDate + 'T00:00:00').toLocaleDateString()
+                        : '—'}{' '}
                       {selectedTime ? `at ${selectedTime}` : ''}
                     </div>
                   </>
@@ -142,12 +202,19 @@ const AppointmentBooking = () => {
         </div>
       </div>
 
+      {/* CONFIRM BUTTON */}
       <div className="d-grid gap-2 mt-3">
         <button
           type="button"
           className="btn btn-lg btn-warning"
           onClick={handleBooking}
-          disabled={!selectedService || !selectedDate || !selectedTime}
+          disabled={
+            !selectedService ||
+            !selectedDate ||
+            !selectedTime ||
+            !patientName ||
+            !patientPhone
+          }
         >
           Confirm Appointment
         </button>

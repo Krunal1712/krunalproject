@@ -1,9 +1,22 @@
 // src/components/Navbar.js
 
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Navbar = () => {
+  const navigate = useNavigate();
+
+  const handleAdminClick = () => {
+    // Clear any previous login/admin info
+    localStorage.removeItem("is_admin");
+    localStorage.removeItem("token");
+    localStorage.removeItem("user_id");
+    localStorage.removeItem("email");
+
+    // Redirect to login page
+    navigate("/login");
+  };
+
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
       <div className="container">
@@ -28,7 +41,13 @@ const Navbar = () => {
               <Link className="nav-link" to="/provider/dashboard">Provider</Link>
             </li>
             <li className="nav-item">
-              <Link className="nav-link" to="/admin/dashboard">Admin</Link>
+              <span
+                className="nav-link"
+                style={{ cursor: "pointer" }}
+                onClick={handleAdminClick}
+              >
+                Admin
+              </span>
             </li>
             <li className="nav-item">
               <Link className="nav-link btn btn-outline-light ms-2" to="/login">Login/Register</Link>
