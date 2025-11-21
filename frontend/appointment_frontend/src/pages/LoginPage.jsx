@@ -30,10 +30,10 @@ const LoginPage = () => {
         console.log(data);
 
         // ✅ Save login data (backend returns flat fields, not data.user)
-localStorage.setItem("token", data.token);
 localStorage.setItem("is_admin", data.is_admin);
-localStorage.setItem("user_id", data.id);
+localStorage.setItem("user_id", data.user_id);
 localStorage.setItem("email", data.email);
+
 
 // ---------- REDIRECT BASED ON ROLE ----------
 if (data.is_admin) {

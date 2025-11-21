@@ -1,52 +1,52 @@
-// src/pages/AdminDashboard.js
+// src/pages/AdminDashboard.jsx
 
-import React from 'react';
-import { useNavigate } from 'react-router-dom'; // 👈 Import the hook
+import React from "react";
+import { useNavigate } from "react-router-dom";
 
 const AdminDashboard = () => {
-    // 1. Initialize the navigate function
-    const navigate = useNavigate(); 
+  const navigate = useNavigate();
 
-    // 2. Define handler functions for clarity
-    const handleManageUsers = () => {
-        // This function will redirect the user to a new URL
-        navigate('/admin/manage-users');
-        console.log("Navigating to Manage Users page...");
-    };
+  // Navigation handlers
+  const goToUsers = () => navigate("/admin/manage-users");
+  const goToServices = () => navigate("/admin/manage-services");
+  const goToAppointments = () => navigate("/admin/appointments");
+  const goToUserView = () => navigate("/user/dashboard");
 
-    const handleManageServices = () => {
-        // This function will redirect the user to a new URL
-        navigate('/admin/manage-services');
-        console.log("Navigating to Manage Services page...");
-    };
+  return (
+    <div className="container mt-4">
 
-    return (
-        <div>
-            <h2>Administrator Control ⚙️</h2>
-            <p className="lead">System overview and management tools.</p>
-            
-            <div className="alert alert-danger">
-                Total Users: 150 | Total Services: 10
-            </div>
-            
-            <div className="d-flex gap-2">
-                {/* 3. Attach the onClick handlers to the buttons */}
-                <button 
-                    className="btn btn-success"
-                    onClick={handleManageUsers} // 👈 Added handler
-                >
-                    Manage Users
-                </button>
-                
-                <button 
-                    className="btn btn-info"
-                    onClick={handleManageServices} // 👈 Added handler
-                >
-                    Manage Services
-                </button>
-            </div>
-        </div>
-    );
+      {/* Title */}
+      <h2 className="text-primary mb-2">⚙️ Administrator Dashboard</h2>
+      <p className="lead">Manage system users, appointments, and services.</p>
+
+      {/* Stats Section */}
+      <div className="alert alert-warning">
+        <strong>Total Users:</strong> 150 &nbsp; | &nbsp;
+        <strong>Total Services:</strong> 10
+      </div>
+
+      {/* Action Buttons */}
+      <div className="d-flex flex-column gap-3 mt-4">
+
+        <button className="btn btn-success btn-lg" onClick={goToUsers}>
+          👥 Manage Users
+        </button>
+
+        <button className="btn btn-info btn-lg" onClick={goToServices}>
+          🛠 Manage Services
+        </button>
+
+        <button className="btn btn-secondary btn-lg" onClick={goToAppointments}>
+          📅 Manage Appointments
+        </button>
+
+        <button className="btn btn-dark btn-lg" onClick={goToUserView}>
+          👤 Switch to User View
+        </button>
+
+      </div>
+    </div>
+  );
 };
 
 export default AdminDashboard;
