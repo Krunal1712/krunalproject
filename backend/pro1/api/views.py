@@ -3,19 +3,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.contrib.auth.hashers import make_password, check_password
 from rest_framework import status
-from .serializers import UserSerializer, AppointmentSerializer
-from django.contrib.auth import get_user_model
-from .models import Appointment
-
-  # ALWAYS use this
-
-
-
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from django.contrib.auth.hashers import make_password, check_password
-from rest_framework import status
 from django.contrib.auth import get_user_model
 from .models import Appointment
 from .serializers import UserSerializer, AppointmentSerializer
@@ -26,22 +13,17 @@ User = get_user_model()
 # ---------------- REGISTER API ----------------
 @api_view(['POST'])
 def register(request):
-    data = request.data.copy()
-
-    if "password" in data:
-        data["password"] = make_password(data["password"])
-
-    serializer = UserSerializer(data=data)
+    serializer = UserSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
         return Response({"message": "User registered successfully"}, status=201)
-
     return Response(serializer.errors, status=400)
 
 
+
 # ---------------- LOGIN API ----------------
-@api_view(['POST'])
-def login(request):
+@api_view(['POST', 'GET'])
+def login_user(request):
     email = request.data.get("email")
     password = request.data.get("password")
 
@@ -83,3 +65,7 @@ def user_appointments(request):
     appointments = Appointment.objects.filter(user=request.user).order_by('date', 'created_at')
     serializer = AppointmentSerializer(appointments, many=True)
     return Response(serializer.data)
+
+@api_view(['GET'])
+def test_view(request):
+    return Response({"message": "API is working"})

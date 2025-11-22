@@ -21,8 +21,8 @@ const LoginPage = () => {
       if (isLogin) {
         // ---------- LOGIN ----------
         const res = await axios.post(`${API_URL}login/`, {
-          email,
-          password,
+  email,
+  password,
         });
 
         const data = res.data;
