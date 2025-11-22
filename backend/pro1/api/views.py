@@ -6,8 +6,8 @@ from rest_framework import status
 from django.contrib.auth import get_user_model
 from .models import Appointment
 from .serializers import UserSerializer, AppointmentSerializer
-
-User = get_user_model()
+from.models import *
+#User = get_user_model()
 
 
 # ---------------- REGISTER API ----------------
