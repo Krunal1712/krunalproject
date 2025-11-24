@@ -1,5 +1,5 @@
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from django.contrib.auth.hashers import make_password, check_password
 from rest_framework import status
@@ -42,12 +42,20 @@ def login_user(request):
     })
 
 
-# ---------------- CREATE APPOINTMENT ----------------
+# ---------------- CREATE APPOINTMENT (PUBLIC, NO LOGIN REQUIRED) ----------------
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def create_appointment(request):
     data = request.data.copy()
-    data['user'] = request.user.id
+
+    # Frontend sends user_id → convert to user FK
+    user_id = request.data.get("user_id")
+
+    if not user_id:
+        return Response({"error": "user_id is required"}, status=400)
+
+    data["user"] = user_id  # Assign user foreign key
+
     serializer = AppointmentSerializer(data=data)
 
     if serializer.is_valid():
@@ -55,12 +63,13 @@ def create_appointment(request):
         return Response({
             "message": "Appointment booked successfully",
             "appointment": serializer.data
-        })
+        }, status=201)
 
     return Response({"error": serializer.errors}, status=400)
 
 
-# ---------------- USER APPOINTMENTS ----------------
+
+# ---------------- USER APPOINTMENTS (REQUIRES LOGIN) ----------------
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def user_appointments(request):
@@ -69,6 +78,7 @@ def user_appointments(request):
     return Response(serializer.data)
 
 
+# ---------------- TEST VIEW ----------------
 @api_view(['GET'])
 def test_view(request):
     return Response({"message": "API is working"})
@@ -88,7 +98,7 @@ def admin_dashboard(request):
         {
             "id": a.id,
             "patientName": a.patient_name,
-            "serviceName": a.service.name,
+            "serviceName": a.service.name if a.service else "",
             "timeSlot": a.time
         }
         for a in todays
@@ -113,6 +123,9 @@ def provider_all_appointments(request):
     appointments = Appointment.objects.all().order_by('date', 'time')
     serializer = AppointmentSerializer(appointments, many=True)
     return Response(serializer.data)
+
+
+# ---------------- PROVIDER TODAY APPOINTMENTS ----------------
 @api_view(['GET'])
 def provider_today_appointments(request):
     today = date.today()
@@ -121,6 +134,7 @@ def provider_today_appointments(request):
     return Response(serializer.data)
 
 
+# ---------------- TIME SLOTS ----------------
 @api_view(['GET'])
 def time_slots(request):
     return Response({
@@ -133,14 +147,12 @@ def time_slots(request):
         ]
     })
 
-register()
-login_user()
-create_appointment()
-user_appointments()
-test_view()
-admin_dashboard()
-
-provider_all_appointments()    
-provider_today_appointments()  
-time_slots()                   
-
+@api_view(['GET'])
+@permission_classes([AllowAny])     # since your app has no JWT yet
+def user_appointments_by_id(request, user_id):
+    try:
+        appointments = Appointment.objects.filter(user_id=user_id).order_by('date', 'created_at')
+        serializer = AppointmentSerializer(appointments, many=True)
+        return Response(serializer.data)
+    except Exception as e:
+        return Response({"error": str(e)}, status=400)

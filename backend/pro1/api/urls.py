@@ -5,6 +5,7 @@ from .views import (
     test_view,
     create_appointment,
     user_appointments,
+    user_appointments_by_id,
     admin_dashboard,
     provider_all_appointments,
     provider_today_appointments,
@@ -12,13 +13,21 @@ from .views import (
 )
 
 urlpatterns = [
+    # Auth
     path('register/', register),
     path('login/', login_user),
-    path('appointments/', create_appointment),
+
+    # Appointments
+    path('appointments/create/', create_appointment),
     path('appointments/me/', user_appointments),
+
+    # ✅ Add this missing one
+    path('appointments/user/<int:user_id>/', user_appointments_by_id),
+
+    # Testing
     path('test/', test_view),
 
-    # Admin Dashboard
+    # Admin
     path("admin/dashboard/", admin_dashboard),
 
     # Provider

@@ -2,8 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from "axios";
 
-
-// Mock data (replace with API later)
 const mockServices = [
   { id: 1, name: 'General Checkup', provider: 'Dr. Smith' },
   { id: 2, name: 'Dental Cleaning', provider: 'Dr. Mayur' },
@@ -16,11 +14,8 @@ const AppointmentBooking = () => {
   const [selectedService, setSelectedService] = useState(null);
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
-
-  // NEW FIELDS
   const [patientName, setPatientName] = useState('');
   const [patientPhone, setPatientPhone] = useState('');
-  
 
   const navigate = useNavigate();
 
@@ -30,59 +25,59 @@ const AppointmentBooking = () => {
     setSelectedTime('');
   };
 
-  const handleBooking = () => {
-    if (
-      !selectedService ||
-      !selectedDate ||
-      !selectedTime ||
-      !patientName.trim() ||
-      !patientPhone.trim()
-    ) {
-      alert('Please fill all fields: patient name, phone, service, date and time.');
-      return;
-    }
+  // -------------------------------
+  // SAVE INTO DJANGO BACKEND
+  // -------------------------------
+  const handleBooking = async () => {
+  if (
+    !selectedService ||
+    !selectedDate ||
+    !selectedTime ||
+    !patientName.trim() ||
+    !patientPhone.trim()
+  ) {
+    alert("Please fill all fields");
+    return;
+  }
 
-    // ISO Date
-    const dateIso = selectedDate;
-    const dateObj = new Date(dateIso + 'T00:00:00');
-    const dateDisplay = dateObj.toLocaleDateString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
+  const user_id = localStorage.getItem("user_id"); // ✅ READ USER ID
 
-    const newAppt = {
-      id: `appt_${Date.now()}`,
-      patientName,
-      patientPhone,
-      serviceId: selectedService.id,
-      serviceName: selectedService.name,
-      provider: selectedService.provider,
-      dateIso,
-      dateDisplay,
-      time: selectedTime,
-      createdAt: new Date().toISOString()
-    };
+  if (!user_id) {
+    alert("User not logged in. Please login again.");
+    return;
+  }
 
-    try {
-      const stored = JSON.parse(localStorage.getItem('appointments') || '[]');
-      stored.push(newAppt);
-      localStorage.setItem('appointments', JSON.stringify(stored));
-    } catch (err) {
-      console.error('localStorage error:', err);
-      alert('Could not save appointment.');
-      return;
-    }
-
-    // Reset fields
-    setPatientName('');
-    setPatientPhone('');
-    setSelectedService(null);
-    setSelectedDate('');
-    setSelectedTime('');
-    navigate('/user/dashboard');
+  const payload = {
+    user_id: user_id,                     // ✅ ADD THIS
+    patient_name: patientName,
+    patient_phone: patientPhone,
+    service_name: selectedService.name,
+    provider: selectedService.provider,
+    date: selectedDate,
+    time: selectedTime
   };
 
+  try {
+    const res = await axios.post(
+      "http://127.0.0.1:8000/api/appointments/create/",
+      payload,
+      { withCredentials: true }
+    );
+
+    if (res.status === 201) {
+      alert("Appointment booked successfully!");
+      navigate("/user/dashboard");
+    }
+  } catch (err) {
+    console.error("Error creating appointment:", err.response?.data || err);
+    alert("Failed to book appointment.");
+  }
+};
+
+
+  // -------------------------------
+  // UI RETURN
+  // -------------------------------
   return (
     <div>
       <h2>🗓️ Book a New Appointment</h2>
@@ -119,7 +114,8 @@ const AppointmentBooking = () => {
       </div>
 
       <div className="row">
-        {/* SERVICES */}
+
+        {/* SERVICE LIST */}
         <div className="col-md-4 mb-4">
           <div className="card p-3">
             <h5>2. Choose a Service</h5>
@@ -152,7 +148,7 @@ const AppointmentBooking = () => {
                 <div className="mb-3">
                   <label className="form-label fw-bold">Selected Service</label>
                   <div className="mb-2">
-                    <strong>{selectedService.name}</strong> —
+                    <strong>{selectedService.name}</strong> — 
                     <span className="text-muted"> {selectedService.provider}</span>
                   </div>
 
@@ -172,6 +168,7 @@ const AppointmentBooking = () => {
                 {selectedDate && (
                   <>
                     <label className="form-label fw-bold">Available Time Slots</label>
+
                     <div className="d-flex flex-wrap">
                       {mockTimeSlots.map((slot) => (
                         <button

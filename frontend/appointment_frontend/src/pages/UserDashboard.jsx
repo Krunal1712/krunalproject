@@ -6,22 +6,37 @@ const UserDashboard = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+  const fetchData = async () => {
     try {
-      const stored = JSON.parse(localStorage.getItem('appointments') || '[]');
+      const user_id = localStorage.getItem("user_id");
 
-      // Sort by date then createdAt
-      stored.sort((a, b) => {
-        if (a.dateIso < b.dateIso) return -1;
-        if (a.dateIso > b.dateIso) return 1;
-        return a.createdAt < b.createdAt ? -1 : 1;
-      });
+      const res = await fetch(`http://127.0.0.1:8000/api/appointments/user/${user_id}/`);
+      const data = await res.json();
 
-      setAppointments(stored);
+      // FIX: transform API fields to frontend UI fields
+      setAppointments(
+        data.map(a => ({
+          id: a.id,
+          serviceName: a.service_name,
+          provider: a.provider,
+          patientName: a.patient_name,
+          patientPhone: a.patient_phone,
+          dateDisplay: a.date,
+          time: a.time,
+          createdAt: a.created_at,
+        }))
+      );
+
     } catch (err) {
-      console.error('read error', err);
+      console.error("Error loading appointments", err);
       setAppointments([]);
     }
-  }, []);
+  };
+
+  fetchData();
+}, []);
+
+
 
   const handleClearAll = () => {
     if (!window.confirm('Clear all saved appointments?')) return;

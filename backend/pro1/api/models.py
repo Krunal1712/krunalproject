@@ -10,7 +10,6 @@ class User(models.Model):
     is_admin = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
-        # Auto-hash password unless already hashed
         if not self.password.startswith("pbkdf2_"):
             self.password = make_password(self.password)
         super().save(*args, **kwargs)
@@ -32,8 +31,27 @@ class Service(models.Model):
 
 # ---------------- APPOINTMENT MODEL ----------------
 class Appointment(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="appointments")
-    service = models.ForeignKey(Service, on_delete=models.SET_NULL, null=True, blank=True)
+
+    # PUBLIC BOOKING — NO LOGIN — so user is optional
+    user = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="appointments"
+    )
+
+    # These two match your table columns (service_name, provider)
+    service_name = models.CharField(max_length=255, null=True, blank=True)
+    provider = models.CharField(max_length=255, null=True, blank=True)
+
+    # Optional foreign key for linking service
+    service = models.ForeignKey(
+        Service,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
 
     patient_name = models.CharField(max_length=255)
     patient_phone = models.CharField(max_length=20)
@@ -44,5 +62,4 @@ class Appointment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        service_name = self.service.name if self.service else "No Service"
-        return f"{self.patient_name} - {service_name} on {self.date}"
+        return f"{self.patient_name} - {self.service_name} on {self.date}"
