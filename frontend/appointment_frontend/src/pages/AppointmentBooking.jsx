@@ -25,59 +25,64 @@ const AppointmentBooking = () => {
     setSelectedTime('');
   };
 
-  // -------------------------------
-  // SAVE INTO DJANGO BACKEND
-  // -------------------------------
-  const handleBooking = async () => {
-  if (
-    !selectedService ||
-    !selectedDate ||
-    !selectedTime ||
-    !patientName.trim() ||
-    !patientPhone.trim()
-  ) {
-    alert("Please fill all fields");
-    return;
-  }
-
-  const user_id = localStorage.getItem("user_id"); // ✅ READ USER ID
-
-  if (!user_id) {
-    alert("User not logged in. Please login again.");
-    return;
-  }
-
-  const payload = {
-    user_id: user_id,                     // ✅ ADD THIS
-    patient_name: patientName,
-    patient_phone: patientPhone,
-    service_name: selectedService.name,
-    provider: selectedService.provider,
-    date: selectedDate,
-    time: selectedTime
+  // -------------- PHONE VALIDATION (10 DIGIT) ------------------
+  const isValidPhone = (num) => {
+    return /^[0-9]{10}$/.test(num);
   };
 
-  try {
-    const res = await axios.post(
-      "http://127.0.0.1:8000/api/appointments/create/",
-      payload,
-      { withCredentials: true }
-    );
-
-    if (res.status === 201) {
-      alert("Appointment booked successfully!");
-      navigate("/user/dashboard");
+  // ------------------------------- SAVE INTO BACKEND -------------------------------
+  const handleBooking = async () => {
+    if (
+      !selectedService ||
+      !selectedDate ||
+      !selectedTime ||
+      !patientName.trim() ||
+      !patientPhone.trim()
+    ) {
+      alert("Please fill all fields");
+      return;
     }
-  } catch (err) {
-    console.error("Error creating appointment:", err.response?.data || err);
-    alert("Failed to book appointment.");
-  }
-};
 
+    if (!isValidPhone(patientPhone)) {
+      alert("Mobile number must be exactly 10 digits.");
+      return;
+    }
 
-  // -------------------------------
-  // UI RETURN
-  // -------------------------------
+    const user_id = localStorage.getItem("user_id");
+
+    if (!user_id) {
+      alert("User not logged in. Please login again.");
+      return;
+    }
+
+    const payload = {
+      user_id: user_id,
+      patient_name: patientName,
+      patient_phone: patientPhone,
+      service_name: selectedService.name,
+      provider: selectedService.provider,
+      date: selectedDate,
+      time: selectedTime
+    };
+
+    try {
+      const res = await axios.post(
+        "http://127.0.0.1:8000/api/appointments/create/",
+        payload,
+        { withCredentials: true }
+      );
+
+      if (res.status === 201) {
+        alert("Appointment booked successfully!");
+        navigate("/user/dashboard");
+      }
+    } catch (err) {
+      console.error("Error creating appointment:", err.response?.data || err);
+      alert("Failed to book appointment.");
+    }
+  };
+
+  // ------------------------------- UI -------------------------------
   return (
     <div>
       <h2>🗓️ Book a New Appointment</h2>
@@ -104,11 +109,16 @@ const AppointmentBooking = () => {
             <label className="form-label fw-bold">Mobile Number</label>
             <input
               type="tel"
-              className="form-control"
-              placeholder="Enter mobile number"
+              className={`form-control ${patientPhone && !isValidPhone(patientPhone) ? 'is-invalid' : ''}`}
+              placeholder="Enter 10-digit mobile number"
               value={patientPhone}
               onChange={(e) => setPatientPhone(e.target.value)}
             />
+            {patientPhone && !isValidPhone(patientPhone) && (
+              <div className="invalid-feedback">
+                Mobile number must be exactly 10 digits.
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -210,7 +220,8 @@ const AppointmentBooking = () => {
             !selectedDate ||
             !selectedTime ||
             !patientName ||
-            !patientPhone
+            !patientPhone ||
+            !isValidPhone(patientPhone)
           }
         >
           Confirm Appointment

@@ -10,6 +10,7 @@ import UserDashboard from './pages/UserDashboard';
 import ProviderDashboard from './pages/ProviderDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import AppointmentBooking from './pages/AppointmentBooking';
+import ManageServices from './pages/ManageServices';
 
 // Import Protected Route
 import ProtectedAdminRoute from './components/ProtectedAdminRoute';
@@ -29,6 +30,8 @@ function App() {
             {/* Role-Based Routes */}
             <Route path="/user/dashboard" element={<UserDashboard />} />
             <Route path="/provider/dashboard" element={<ProviderDashboard />} />
+            <Route path="/admin/manage-services" element={<ManageServices />} />
+
 
             {/* PROTECTED ADMIN ROUTE */}
             <Route 
