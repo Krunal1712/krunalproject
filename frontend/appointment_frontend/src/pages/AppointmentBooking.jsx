@@ -16,6 +16,7 @@ const AppointmentBooking = () => {
   const [selectedTime, setSelectedTime] = useState('');
   const [patientName, setPatientName] = useState('');
   const [patientPhone, setPatientPhone] = useState('');
+  const [isDarkMode, setIsDarkMode] = useState(false);  // 🌙 DARK MODE
 
   const navigate = useNavigate();
 
@@ -25,12 +26,9 @@ const AppointmentBooking = () => {
     setSelectedTime('');
   };
 
-  // -------------- PHONE VALIDATION (10 DIGIT) ------------------
-  const isValidPhone = (num) => {
-    return /^[0-9]{10}$/.test(num);
-  };
+  const isValidPhone = (num) => /^[0-9]{10}$/.test(num);
 
-  // ------------------------------- SAVE INTO BACKEND -------------------------------
+  // ---------------- SAVE INTO BACKEND ----------------
   const handleBooking = async () => {
     if (
       !selectedService ||
@@ -82,15 +80,29 @@ const AppointmentBooking = () => {
     }
   };
 
-  // ------------------------------- UI -------------------------------
+  // 🌙 DARK MODE TOGGLE
+  const toggleDarkMode = () => setIsDarkMode(!isDarkMode);
+
   return (
-    <div>
-      <h2>🗓️ Book a New Appointment</h2>
+    <div className={isDarkMode ? "dark-mode p-3" : "light-mode p-3"}>
+      
+      {/* TOP BAR */}
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <h2>🗓️ Book a New Appointment</h2>
+
+        <button 
+          className="btn btn-outline-secondary"
+          onClick={toggleDarkMode}
+        >
+          {isDarkMode ? "🌞 Light Mode" : "🌙 Dark Mode"}
+        </button>
+      </div>
+
       <p className="lead">Enter patient details → choose service → date → time.</p>
       <hr />
 
       {/* PATIENT DETAILS */}
-      <div className="card p-3 mb-4">
+      <div className="card p-3 mb-4 shadow">
         <h5>1. Patient Details</h5>
 
         <div className="row">
@@ -127,7 +139,7 @@ const AppointmentBooking = () => {
 
         {/* SERVICE LIST */}
         <div className="col-md-4 mb-4">
-          <div className="card p-3">
+          <div className="card p-3 shadow">
             <h5>2. Choose a Service</h5>
             <div className="list-group">
               {mockServices.map((s) => (
@@ -148,7 +160,7 @@ const AppointmentBooking = () => {
 
         {/* DATE & TIME */}
         <div className="col-md-8">
-          <div className="card p-3">
+          <div className="card p-3 shadow">
             <h5>3. Select Date & Time</h5>
 
             {!selectedService ? (
