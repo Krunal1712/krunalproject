@@ -17,7 +17,7 @@ import ProtectedAdminRoute from './components/ProtectedAdminRoute';
 
 function App() {
   return (
-    <Router basename="/krunalproject">
+    <Router basename={import.meta.env.MODE === "production" ? "/krunalproject" : "/"}>
       <div className="d-flex flex-column min-vh-100">
         <Navbar />
         <main className="flex-grow-1 container mt-4 mb-4">
