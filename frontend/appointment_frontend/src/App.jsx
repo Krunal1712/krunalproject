@@ -17,7 +17,7 @@ import ProtectedAdminRoute from './components/ProtectedAdminRoute';
 
 function App() {
   return (
-    <Router>
+    <Router basename="/krunalproject">
       <div className="d-flex flex-column min-vh-100">
         <Navbar />
         <main className="flex-grow-1 container mt-4 mb-4">
@@ -32,15 +32,14 @@ function App() {
             <Route path="/provider/dashboard" element={<ProviderDashboard />} />
             <Route path="/admin/manage-services" element={<ManageServices />} />
 
-
             {/* PROTECTED ADMIN ROUTE */}
-            <Route 
-              path="/admin/dashboard" 
+            <Route
+              path="/admin/dashboard"
               element={
                 <ProtectedAdminRoute>
                   <AdminDashboard />
                 </ProtectedAdminRoute>
-              } 
+              }
             />
 
             {/* Additional Routes */}
@@ -53,5 +52,3 @@ function App() {
     </Router>
   );
 }
-
-export default App;
